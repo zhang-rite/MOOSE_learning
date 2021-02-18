@@ -522,6 +522,12 @@
   #   value = 18.3e6
   #   variable = pwater
   # [../]
+  [top]
+    type = DirichletBC
+    variable = pwater
+    value = 0
+    boundary = 'top'
+  []     
   [xmax_drained]
     type = FunctionDirichletBC
     variable = pwater
