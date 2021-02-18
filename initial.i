@@ -38,55 +38,46 @@
 #  [../]
 # [] 
 
-# [Mesh]
-#  type = MeshGeneratorMesh
-#  [./cartesian]
-#    type = CartesianMeshGenerator
-#    dim = 2
-#    dx = '0.2 1000 4500 10000'
-#    ix = '2 50 45 10'
-#    dy = '3000 1500 500'
-#    iy = '30 100 10'
-#    # subdomain_id = '1 2'
-#  [../]
-# [] 
-
-
-
 [Mesh]
-  type = FileMesh
-  file = initial_out.e
+ type = MeshGeneratorMesh
+ [./cartesian]
+   type = CartesianMeshGenerator
+   dim = 2
+   dx = '0.2 1000 4500 10000'
+   ix = '2 50 45 10'
+   dy = '10000 3000 1500 500'
+   iy = '10 30 100 10'
+   # subdomain_id = '1 2'
+ [../]
+[] 
+
+[MeshModifiers]
+  [shift_down]
+    type = Transform
+    transform = TRANSLATE
+	  vector_value = '0.1 -15000 0'
+  []
+  [aquifer]
+    type = SubdomainBoundingBox
+    block_id = 1
+    bottom_left = '0.1 -1500 0' 
+    top_right = '30000.1 -1000 0'
+	depends_on = shift_down
+  []
+  [injection_area]
+    type = ParsedAddSideset
+    combinatorial_geometry = x<0.101
+    included_subdomain_ids = '1'
+    new_sideset_name = injection_area
+    depends_on = 'aquifer'
+  []
+  [rename]
+    type = RenameBlock
+    old_block_id = '0 1'
+    new_block_name = 'caps aquifer'
+    depends_on = 'injection_area'
+  []
 []
-
-
-
-# [MeshModifiers]
-#   [shift_down]
-#     type = Transform
-#     transform = TRANSLATE
-# 	  vector_value = '0.1 -5000 0'
-#   []
-#   [aquifer]
-#     type = SubdomainBoundingBox
-#     block_id = 1
-#     bottom_left = '0.1 -1500 0' 
-#     top_right = '30000.1 -1000 0'
-# 	depends_on = shift_down
-#   []
-#   [injection_area]
-#     type = ParsedAddSideset
-#     combinatorial_geometry = x<0.101
-#     included_subdomain_ids = '1'
-#     new_sideset_name = injection_area
-#     depends_on = 'aquifer'
-#   []
-#   [rename]
-#     type = RenameBlock
-#     old_block_id = '0 1'
-#     new_block_name = 'caps aquifer'
-#     depends_on = 'injection_area'
-#   []
-# []
 
 
 [Problem]
@@ -103,22 +94,25 @@
 [Variables]
   [./pwater]
     # initial_condition = 18.3e6
-    initial_from_file_var = pwater
   [../]
   [./sgas]
-    # initial_condition = 0.0
-    initial_from_file_var = sgas
-    
+    initial_condition = 0.0
   [../]
   # [./temp]
   #   initial_condition = 358
   # [../]
   [./disp_r]
-  initial_from_file_var = disp_r
   [../]
   [./disp_z]
-  initial_from_file_var = disp_z
   [../]  
+[]
+
+[ICs]
+  [pwater]
+    type = FunctionIC
+    function = ppic
+    variable = pwater
+  []
 []
 
 [AuxVariables]
@@ -136,14 +130,6 @@
     family = MONOMIAL
     order = FIRST
   [../]
-  [./pgas0]
-    family = MONOMIAL
-    order = FIRST
-  [../]  
-  [./pgas2]
-    family = MONOMIAL
-    order = FIRST
-  [../]  
   [./swater]
     family = MONOMIAL
     order = FIRST
@@ -251,7 +237,7 @@
     variable = disp_z
     use_displaced_mesh = false
     component = 1
-  [../]    
+  [../]  
 []
 
 [AuxKernels]
@@ -316,22 +302,6 @@
     function = 'strain_zz-strain_zz_0'#'9.869233e-13*perm_md'
     # execute_on = initial
   []    
-
-  [pgas0]
-    type = PorousFlowPropertyAux
-    property = pressure
-    phase = 1
-    variable = pgas0
-    execute_on = initial
-  []  
-  [pgas2]
-    type = ParsedAux
-    variable = pgas2
-    args = 'pgas0 pgas'
-    function = 'pgas-pgas0'#'9.869233e-13*perm_md'
-    # execute_on = initial
-  []   
-
   [strain_tt]
     type = RankTwoAux
     rank_two_tensor = elastic_strain
@@ -494,13 +464,13 @@
   [../]
   [./strain]
     type = ComputeAxisymmetricRZSmallStrain
-    # eigenstrain_names = 'ini_stress'
+    eigenstrain_names = 'ini_stress'
   [../]
-  # [./ini_strain]
-  #   type = ComputeEigenstrainFromInitialStress
-  #   # initial_stress = '-12.8E6 0 0  0 -12.8E6 0  0 0 -12.8E6'
-  #   # eigenstrain_name = ini_stress
-  # [../]
+  [./ini_strain]
+    type = ComputeEigenstrainFromInitialStress
+    initial_stress = '-12.8E6 0 0  0 -12.8E6 0  0 0 -12.8E6'
+    eigenstrain_name = ini_stress
+  [../]
   # [./thermal_contribution]
   #   type = ComputeThermalExpansionEigenstrain
   #   temperature = temp
@@ -533,13 +503,13 @@
     variable = pwater
     value = 0
     boundary = 'top'
-  []       
+  []     
   [xmax_drained]
     type = FunctionDirichletBC
     variable = pwater
     boundary = 'right'
     function = ppic #pressure_BC 
-  [] 
+  []  
   [./outer_saturation_fixed]
     type = DirichletBC
     boundary = right
@@ -571,7 +541,7 @@
     use_mobility = false
     use_relperm = false
     fluid_phase = 1
-    flux_function = 'min(t/100.0,1)*(-1.294001475)' # 5.0E5 T/year = 15.855 kg/s, over area of 2Pi*0.1*11
+    flux_function = 0 #'min(t/100.0,1)*(-1.294001475)' # 5.0E5 T/year = 15.855 kg/s, over area of 2Pi*0.1*11
   [../]
 
   # [./constant_injection_porepressure]
@@ -644,22 +614,22 @@
     full = true
     petsc_options = '-snes_converged_reason -ksp_diagonal_scale -ksp_diagonal_scale_fix -ksp_gmres_modifiedgramschmidt -snes_linesearch_monitor'
     petsc_options_iname = '-ksp_type -pc_type -pc_factor_mat_solver_package -pc_factor_shift_type -snes_rtol -snes_atol -snes_max_it'
-    petsc_options_value = 'gmres      lu       mumps                         NONZERO               1E-9       1E-4       50'
+    petsc_options_value = 'gmres      lu       mumps                         NONZERO               1E-9       1E-5       50'
   [../]
 []
 
 [Executioner]
   type = Transient
   solve_type = NEWTON
-  end_time = 1.5768e8
+  end_time = 1.5768e10
   automatic_scaling = True
-  compute_scaling_once = False #True #
+  compute_scaling_once = True #False #True #
 
   #dtmax = 1e6
   [./TimeStepper]
     type = IterationAdaptiveDT
     dt = 1
-    growth_factor = 1.1
+    growth_factor = 2
   [../]
 []
 
