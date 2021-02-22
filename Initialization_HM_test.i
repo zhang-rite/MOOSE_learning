@@ -7,9 +7,9 @@
    type = CartesianMeshGenerator
    dim = 2
    dx = '0.2 15000'
-   ix = '2 150'
+   ix = '2 50'
    dy = '15000'
-   iy = '150'
+   iy = '50'
  [../]
 [] 
 
@@ -413,8 +413,8 @@
 [Executioner]
   type = Steady
   solve_type = 'NEWTON' # default = PJFNK | NEWTON
-  automatic_scaling = True
-  compute_scaling_once = False #True #
+  # automatic_scaling = True
+  # compute_scaling_once = False #True #
   l_max_its  = 50
   l_tol      = 1e-4
   nl_max_its = 500
