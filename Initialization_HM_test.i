@@ -7,9 +7,10 @@
    type = CartesianMeshGenerator
    dim = 2
    dx = '0.2 15000'
-   ix = '2 50'
+   ix = '2 100'
    dy = '15000'
-   iy = '50'
+   iy = '100'
+   # subdomain_id = '1 2'
  [../]
 [] 
 
@@ -24,8 +25,21 @@
     block_id = 1
     bottom_left = '0.1 -1500 0' 
     top_right = '30000.1 -1000 0'
-	depends_on = shift_down
-  []
+	  depends_on = shift_down
+  []  
+  # [injection_area]
+  #   type = ParsedAddSideset
+  #   combinatorial_geometry = x<0.101
+  #   included_subdomain_ids = '1'
+  #   new_sideset_name = injection_area
+  #   depends_on = 'aquifer'
+  # []
+  # [rename]
+  #   type = RenameBlock
+  #   old_block_id = '0 1'
+  #   new_block_name = 'caps aquifer'
+  #   depends_on = 'injection_area'
+  # []
 []
 
 ############################################################
@@ -42,7 +56,6 @@
 ############################################################
 [Variables]
   [./pwater]
-  
   [../]
   [./disp_r]
   [../]
@@ -128,14 +141,14 @@
     variable = pwater
     boundary = 'top'
     # use_displaced_mesh = false
-    function = '101325-z*9810'
+    function = '101325-y*9810'
   []    
      
   [xmax_drained]
     type = FunctionDirichletBC
     variable = pwater
-    boundary = 'right left'
-    function = '101325-z*9810'  
+    boundary = 'right'
+    function = '101325-y*9810'  
     # use_displaced_mesh = false 
   []  
 
@@ -167,7 +180,7 @@
     type = Pressure
     variable = disp_z
     component = 1
-    function = '-2386.0*9.81*z'
+    function = '-2386.0*9.81*y'
     use_displaced_mesh = false
     boundary = 'top'
   [../]  
@@ -385,41 +398,25 @@
 ############################################################
 
 [Preconditioning]
-  active = superlu #'superlu' #
-  [./smp]
+  [./andy]
     type = SMP
     full = true
-    #petsc_options = '-snes_converged_reason -ksp_diagonal_scale -ksp_diagonal_scale_fix -ksp_gmres_modifiedgramschmidt -snes_linesearch_monitor'
-    petsc_options_iname = '-ksp_type -pc_type -sub_pc_type -sub_pc_factor_shift_type -pc_asm_overlap -snes_atol -snes_rtol -snes_max_it'
-    petsc_options_value = 'gmres      asm      lu           NONZERO                   2               1E2       1E-5        500'
-  [../]
-  [./mumps]
-    type = SMP
-    full = true
+    petsc_options_iname = '-ksp_type -pc_type -sub_pc_type -pc_factor_shift_type  -snes_atol -snes_rtol'
+    petsc_options_value = 'gmres      lu       mumps        NONZERO                4.4e1     1E-10'
     petsc_options = '-snes_converged_reason -ksp_diagonal_scale -ksp_diagonal_scale_fix -ksp_gmres_modifiedgramschmidt -snes_linesearch_monitor'
-    petsc_options_iname = '-ksp_type -pc_type -pc_factor_mat_solver_package -pc_factor_shift_type -snes_rtol -snes_atol -snes_max_it'
-    petsc_options_value = 'gmres      lu       mumps                         NONZERO               1E-9       1E-5       50'
+
   [../]
-  [./superlu]
-    type = SMP
-    full = true
-    petsc_options = '-ksp_diagonal_scale -ksp_diagonal_scale_fix'
-    petsc_options_iname = '-ksp_type -pc_type -pc_factor_mat_solver_package'
-    petsc_options_value = 'gmres lu superlu_dist'
-  [../]  
 []
 ############################################################
-
 [Executioner]
   type = Steady
-  solve_type = 'NEWTON' # default = PJFNK | NEWTON
-  # automatic_scaling = True
-  # compute_scaling_once = False #True #
-  l_max_its  = 50
-  l_tol      = 1e-4
+  solve_type = Newton
+  # nl_rel_tol = 1e-10
+  # nl_abs_tol = 3.7e2
+  l_max_its  = 200
   nl_max_its = 500
-  nl_rel_tol = 1e-12
-  nl_abs_tol = 1e-6
+  automatic_scaling = True
+  compute_scaling_once = False
 []
 
 ############################################################
