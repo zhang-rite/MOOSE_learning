@@ -1,0 +1,234 @@
+                                                                 2021年06月25日
+
+                         MOOSE 構築手順
+
+1．概要
+
+* ソフトウェア名       : MOOSE
+* ソフトウェアURL      : https://mooseframework.inl.gov/
+* ソフトウェア種別     : □言語
+                         □アプリケーション
+                         □ツール
+                         □数学ライブラリ
+                         □データライブラリ
+                         ■フレームワーク
+                         □その他(                 )
+* ソフトウェア説明     : An open-source, parallel finite element framework
+* バージョン           : ■最新バージョン
+                         □旧バージョン ( )
+* ソースダウンロードURL: https://github.com/idaholab/moose.git
+* 構築環境             : □クロス環境
+                         ■ネイティブ環境(理由： 構築手順が複雑なため)
+* シェル環境           : Bash
+* コンパイラ           : Development Studio (tcsds-1.2.31)
+* 並列環境             : Development Studio (tcsds-1.2.31)
+* ソース構築方法       : ■Autotools
+                         ■cmake
+                         □Makefile
+                         □その他(                 )
+* 必須ソフトウェア     : CMake 3.5以上
+                         Python 3.x
+* 推奨ソフトウェア     : -
+* ソース修正           : ■あり(□patch 添付あり  ■patch 添付なし)
+                         □なし
+* ソース構築時間       : 2.5時間
+
+2. 入手方法
+
+[username@wisteria01 ~]$ export HOME=/work/grpname/username
+[username@wisteria01 ~]$ cd $HOME
+[username@wisteria01 username]$ mkdir offline && cd offline
+[username@wisteria01 offline]$ git clone https://github.com/idaholab/moose.git
+[username@wisteria01 offline]$ cd moose
+[username@wisteria01 moose]$ git checkout master
+[username@wisteria01 moose]$ git submodule update --init
+[username@wisteria01 moose]$ git submodule foreach --recursive git submodule update --init
+[username@wisteria01 moose]$ mkdir $HOME/offline/downloads
+[username@wisteria01 moose]$ ./scripts/update_and_rebuild_petsc.sh --with-packages-download-dir=$HOME/offline/downloads
+/work/grpname/username/offline/moose/scripts
+=============================================================================================
+                      Configuring PETSc to compile on your system
+=============================================================================================
+Download the following packages to /work/grpname/username/offline/downloads
+
+fblaslapack ['git://https://bitbucket.org/petsc/pkg-fblaslapack', 'https://bitbucket.org/petsc/pkg-fblaslapack/get/v3.4.2-p3.tar.gz']
+hypre ['git://https://github.com/hypre-space/hypre', 'https://github.com/hypre-space/hypre/archive/v2.20.0.tar.gz']
+metis ['git://https://bitbucket.org/petsc/pkg-metis.git', 'https://bitbucket.org/petsc/pkg-metis/get/v5.1.0-p10.tar.gz']
+slepc ['git://https://gitlab.com/slepc/slepc.git', 'https://gitlab.com/slepc/slepc/-/archive/v3.15.1/slepc-v3.15.1.tar.gz']
+parmetis ['git://https://bitbucket.org/petsc/pkg-parmetis.git', 'https://bitbucket.org/petsc/pkg-parmetis/get/v4.0.3-p6.tar.gz']
+ptscotch ['git://https://gitlab.inria.fr/scotch/scotch.git', 'https://gitlab.inria.fr/scotch/scotch/-/archive/v6.1.0/scotch-v6.1.0.tar.gz', 'http://ftp.mcs.anl.gov/pub/petsc/externalpackages/scotch-v6.1.0.tar.gz']
+mumps ['http://mumps.enseeiht.fr/MUMPS_5.3.5.tar.gz', 'https://ftp.mcs.anl.gov/pub/petsc/externalpackages/MUMPS_5.3.5.tar.gz']
+scalapack ['git://https://bitbucket.org/petsc/pkg-scalapack', 'https://bitbucket.org/petsc/pkg-scalapack/get/v2.1.0-p2.tar.gz']
+superlu_dist ['git://https://github.com/xiaoyeli/superlu_dist', 'https://github.com/xiaoyeli/superlu_dist/archive/v6.4.0.tar.gz']
+strumpack ['git://https://github.com/pghysels/STRUMPACK', 'https://github.com/pghysels/STRUMPACK/archive/v3.1.1.tar.gz']
+
+Then run the script again
+
+[username@wisteria01 moose]$ cd $HOME/offline/downloads
+[username@wisteria01 downloads]$ curl -s -L -O https://bitbucket.org/petsc/pkg-fblaslapack/get/v3.4.2-p3.tar.gz
+[username@wisteria01 downloads]$ curl -s -L -O https://github.com/hypre-space/hypre/archive/v2.20.0.tar.gz
+[username@wisteria01 downloads]$ curl -s -L -O https://bitbucket.org/petsc/pkg-metis/get/v5.1.0-p10.tar.gz
+[username@wisteria01 downloads]$ curl -s -L -O https://gitlab.com/slepc/slepc/-/archive/v3.15.1/slepc-v3.15.1.tar.gz
+[username@wisteria01 downloads]$ curl -s -L -O https://bitbucket.org/petsc/pkg-parmetis/get/v4.0.3-p6.tar.gz
+[username@wisteria01 downloads]$ curl -s -L -O https://gitlab.inria.fr/scotch/scotch/-/archive/v6.1.0/scotch-v6.1.0.tar.gz
+[username@wisteria01 downloads]$ curl -s -L -O https://ftp.mcs.anl.gov/pub/petsc/externalpackages/MUMPS_5.3.5.tar.gz
+[username@wisteria01 downloads]$ curl -s -L -O https://bitbucket.org/petsc/pkg-scalapack/get/v2.1.0-p2.tar.gz
+[username@wisteria01 downloads]$ curl -s -L -O https://github.com/xiaoyeli/superlu_dist/archive/v6.4.0.tar.gz
+[username@wisteria01 downloads]$ curl -s -L -O https://github.com/pghysels/STRUMPACK/archive/v3.1.1.tar.gz
+[username@wisteria01 downloads]$ cd $HOME/offline/moose
+
+3. 構築手順
+
+3.1. プログラムの修正
+
+[username@wisteria01 moose]$ cp -p scripts/update_and_rebuild_petsc.sh scripts/update_and_rebuild_petsc.sh.org
+[username@wisteria01 moose]$ vi scripts/update_and_rebuild_petsc.sh
+(snip)   ← ソースを修正。修正内容は以下のdiffを参照。
+[username@wisteria01 moose]$ diff -u scripts/update_and_rebuild_petsc.sh.org scripts/update_and_rebuild_petsc.sh
+--- scripts/update_and_rebuild_petsc.sh.org     2021-06-17 09:54:52.000000000 +0900
++++ scripts/update_and_rebuild_petsc.sh 2021-06-18 14:15:05.000000000 +0900
+@@ -101,7 +101,7 @@
+ if [ -z "$go_fast" ]; then
+   rm -rf $SCRIPT_DIR/../petsc/$PETSC_ARCH
+
+-  ./configure $(echo $PFX_STR) $(echo $MAKE_NP_STR) \
++  ./configure CC=$CC CXX=$CXX FC=$FC F77=$F77 F90=$F90 $(echo $PFX_STR) $(echo $MAKE_NP_STR) \
+       --download-hypre=1 \
+       --with-debugging=no \
+       --with-shared-libraries=1 \
+[username@wisteria01 moose]$ 
+
+3.2. PETSc の構築
+
+[username@wisteria01 moose]$ vi build_petsc.sh
+#!/bin/sh
+
+#PJM -L rscgrp=regular-o
+#PJM -L node=1
+#PJM -j
+
+module purge
+module load fj/1.2.31
+module load fjmpi/1.2.31
+module load cmake/3.19.7
+
+export CC=mpifcc
+export CXX=mpiFCC
+export FC=mpifrt
+export F90=$FC
+export F77=$FC
+export fcc_ENV=-Nclang
+# The --linkfortran is required when STRUMPACK is built because Fortran and C++ are mixed.
+# If the following messages is output to stderr when --linkfortran is given, CMake will fail.
+# So, -w option is required to supress the warning messages.
+# clang-7: warning: argument unused during compilation: '--linkfortran' [-Wunused-command-line-argument]
+export FCC_ENV="-Nclang --linkfortran -w" 
+export MOOSE_JOBS=16
+export HOME=/work/grpname/username
+
+./scripts/update_and_rebuild_petsc.sh --skip-submodule-update --with-packages-download-dir=$HOME/offline/downloads/ --prefix=$HOME/libs/petsc
+
+[username@wisteria01 moose]$ pjsub -g group1 build_petsc.sh
+=> ジョブの実行時間は1時間20分
+
+3.3. libmesh の構築
+
+[username@wisteria01 moose]$ vi build_libmesh.sh
+#!/bin/sh
+
+#PJM -L rscgrp=regular-o
+#PJM -L node=1
+#PJM -j
+
+module purge
+module load fj/1.2.31
+module load fjmpi/1.2.31
+module load cmake/3.19.7
+
+export CC=mpifcc
+export CXX=mpiFCC
+export FC=mpifrt
+export F90=$FC
+export F77=$FC
+export fcc_ENV=-Nclang
+export FCC_ENV=-Nclang
+export MOOSE_JOBS=16
+export HOME=/work/grpname/username
+
+export PETSC_DIR=$HOME/libs/petsc
+export LIBMESH_DIR=$HOME/libs/libmesh
+
+./scripts/update_and_rebuild_libmesh.sh --skip-submodule-update
+[username@wisteria01 moose]$ pjsub -g grpname build_libmesh.sh
+[INFO] PJM 0000 pjsub Job 44659 submitted.
+=> ジョブの実行時間は約40分
+
+3.4. MOOSE の構築
+
+[username@wisteria01 moose]$ vi build_moose.sh
+#!/bin/sh
+
+#PJM -L rscgrp=regular-o
+#PJM -L node=1
+#PJM -j
+
+module purge
+module load fj/1.2.31
+module load fjmpi/1.2.31
+module load cmake/3.19.7
+
+export CC=mpifcc
+export CXX=mpiFCC
+export FC=mpifrt
+export F90=$FC
+export F77=$FC
+export fcc_ENV=-Nclang
+export FCC_ENV=-Nclang
+export MOOSE_JOBS=16
+export HOME=/work/grpname/username
+
+export PETSC_DIR=$HOME/libs/petsc
+export LIBMESH_DIR=$HOME/libs/libmesh
+export MOOSE_DIR=$HOME/offline/moose
+
+cd $MOOSE_DIR/test
+make -j6
+[username@wisteria01 moose]$ pjsub -g grpname build_moose.sh
+=> ジョブの実行時間は約20分
+
+4. 環境変数
+
+* CC                : Cコンパイラの指定
+* CXX               : C++ コンパイラの指定
+* FC                : Fortran コンパイラの指定
+* F90               : Fortran90 コンパイラの指定
+* F77               : Fortran77 コンパイラの指定
+* fcc_ENV           : 富士通 C コンパイラのデフォルトオプションの設定
+* FCC_ENV           : 富士通 C++ コンパイラのデフォルトオプションの設定
+* MOOSE_JOBS        : 並列度の指定
+* HOME              : 計算ノード向けホームディレクトリの指定
+
+5. オプション一覧
+
+5.1. update_and_rebuild_petsc.sh 
+
+* --skip-submodule-update      PETSc submodule のアップデートを実施しない(現在のバージョンを使用する)
+* --with-packages-download-dir パッケージのダウンロードディレクトリを指定(PETSc オプション)
+* --prefix                     インストールディレクトリを指定(PETSc オプション)
+
+5.2. update_and_rebuild_libmesh.sh
+
+* --fast                       make および make install のみ実行する(configure を実行しない)
+* --skip-submodule-update      libmesh submodule のアップデートを実施しない(現在のバージョンを使用する)
+
+6. patch
+
+上記に記載済み。
+
+7. 参考
+
+offline インストール
+
+https://mooseframework.inl.gov/getting_started/installation/offline_installation.html
+
+以上
